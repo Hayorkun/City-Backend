@@ -7,6 +7,8 @@ import healthRoute from "./routes/healthRoute.js";
 import errorMiddleware from "./middleware/errorMiddleWare.js";
 import notFoundMiddleware from "./middleware/notFoundMiddleware.js";
 import authRoute from "./routes/authRoute.js";
+import roomRoute from "./routes/roomRoute.js";
+// import testRoute from "./routes/testRoute.js"
 
 dotenv.config();
 
@@ -14,26 +16,21 @@ const PORT = process.env.PORT || 8080;
 
 const app = express();
 
-// Security
 app.use(helmet());
-
-// CORS
 app.use(
   cors({
     origin: ["http://localhost:5173"],
   }),
 );
-
-// Parse JSON
 app.use(express.json());
 
-// Health check
 app.use("/api/health", healthRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/rooms", roomRoute);
+// app.use("/api/test", testRoute)
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
-// Start server
 const startServer = async () => {
   try {
     await connectDB();

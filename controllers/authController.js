@@ -32,7 +32,7 @@ export const registerUser = async (req, res, next) => {
       role: "customer",
     });
 
-    const token = await generateToken(user._id);
+    const token = await generateToken(user._id, user.tokenVersion);
 
     return res.status(201).json({
       success: true,
@@ -79,7 +79,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const token = await generateToken(user._id);
+    const token = await generateToken(user._id, user.tokenVersion);
 
     return res.status(200).json({
       success: true,
@@ -98,20 +98,8 @@ export const login = async (req, res, next) => {
 };
 
 export const getUser = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    user: req.user,
+  });
 };
