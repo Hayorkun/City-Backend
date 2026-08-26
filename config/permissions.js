@@ -1,10 +1,9 @@
-
 export const PERMISSIONS = {
   rooms: {
     create: ["admin"],
     update: ["admin"],
     delete: ["admin"],
-    // view: ["customer", "staff", "admin"],
+    viewAll: ["staff", "admin"],
   },
 
   bookings: {
@@ -15,4 +14,3 @@ export const PERMISSIONS = {
     cancel: ["customer", "staff", "admin"],
   },
 };
-
