@@ -9,6 +9,12 @@ const errorMiddleware = (err, req, res, next) => {
       message: "Invalid ID format",
     });
   }
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
   res.status(statusCode).json({
     success: false,
     message: err.message || "Internal server error",

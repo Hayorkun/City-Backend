@@ -8,6 +8,8 @@ import errorMiddleware from "./middleware/errorMiddleWare.js";
 import notFoundMiddleware from "./middleware/notFoundMiddleware.js";
 import authRoute from "./routes/authRoute.js";
 import roomRoute from "./routes/roomRoute.js";
+import bookingRoute from "./routes/bookingRoute.js";
+import { startBookingExpiryJob } from "./utils/expireBooking.js";
 // import testRoute from "./routes/testRoute.js"
 
 dotenv.config();
@@ -27,6 +29,7 @@ app.use(express.json());
 app.use("/api/health", healthRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/rooms", roomRoute);
+app.use("/api/bookings", bookingRoute);
 // app.use("/api/test", testRoute)
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
@@ -34,7 +37,7 @@ app.use(errorMiddleware);
 const startServer = async () => {
   try {
     await connectDB();
-
+    startBookingExpiryJob();
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
