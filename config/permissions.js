@@ -13,4 +13,8 @@ export const PERMISSIONS = {
     update: ["staff", "admin"],
     cancel: ["customer", "staff", "admin"],
   },
+
+  users: {
+    update: ["admin"]
+  }
 };

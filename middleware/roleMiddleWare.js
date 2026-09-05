@@ -1,5 +1,3 @@
-
-
 export const verifyRole = (...allowedRoles) => {
   return function(req, res, next){
     const role = req.user.role

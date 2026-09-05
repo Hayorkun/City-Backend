@@ -72,7 +72,7 @@ export const getAllRoomsForAdmin = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Rooms fetched",
+      message: "Rooms fetched successfully",
       data: allRooms,
     });
   } catch (error) {

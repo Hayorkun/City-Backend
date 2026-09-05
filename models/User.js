@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isOwner: {
+      type: Boolean,
+      default: false,
+    },
 
     tokenVersion: {
       type: Number,

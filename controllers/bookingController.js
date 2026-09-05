@@ -1,3 +1,4 @@
+import { now } from "mongoose";
 import Booking from "../models/booking.js";
 import Room from "../models/room.js";
 
@@ -79,10 +80,10 @@ export const createBooking = async (req, res, next) => {
     }
     const duration = requestedCheckOut - requestedCheckIn;
     const nights = duration / 86400000;
-    const pricePerNight = roomExist.price
+    const pricePerNight = roomExist.price;
     const totalPrice = pricePerNight * nights;
 
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const booking = await Booking.create({
       user: req.user.id,
       room: roomExist._id,
@@ -91,36 +92,166 @@ export const createBooking = async (req, res, next) => {
       guests,
       pricePerNight,
       totalPrice,
-      expiresAt
+      expiresAt,
     });
 
     return res.status(201).json({
       success: true,
       message: "Booking created successfully",
-      data: booking
-    })
+      data: booking,
+    });
   } catch (error) {
     next(error);
   }
 };
 
 export const getBookingById = async (req, res, next) => {
-  const { id } = req.params
+  const { id } = req.params;
   try {
-    const getBooking = await Booking.findById(id)
+    const getBooking = await Booking.findById(id);
 
-    if(!getBooking){
+    if (!getBooking) {
       return res.status(404).json({
         success: false,
-        message: "No booking found"
-      })
+        message: "No booking found",
+      });
+    }
+    if (req.user.role === "customer") {
+      if (getBooking.user.toString() !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied: user not authorized",
+        });
+      }
     }
     return res.status(200).json({
       success: true,
       message: "Booking retrieved successfully",
-      data: getBooking
-    })
+      data: getBooking,
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
+export const getUserBookings = async (req, res, next) => {
+  try {
+    const getBooking = await Booking.find({ user: req.user.id });
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking retrived successfully",
+      data: getBooking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllBookingForStaff = async (req, res, next) => {
+  try {
+    const allBooking = await Booking.find();
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking fetched successfully",
+      data: allBooking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const cancelBooking = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const fetchBooking = await Booking.findById(id);
+    if (!fetchBooking) {
+      return res.status(404).json({
+        success: false,
+        message: "No booking found",
+      });
+    }
+    if (req.user.role === "customer") {
+      if (fetchBooking.user.toString() !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied",
+        });
+      }
+    }
+    if (
+      fetchBooking.status === "checkedIn" ||
+      fetchBooking.status === "checkedOut" ||
+      fetchBooking.status === "cancelled"
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: "Change denied",
+      });
+    }
+    const now = new Date();
+    const cancel = await Booking.findByIdAndUpdate(
+      id,
+      { status: "cancelled", cancelledAt: now },
+      { new: true },
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Booking cancelled successfully",
+      data: cancel,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateBooking = async (req, res, next) => {
+  const ALLOWED_TRANSITIONS = {
+    pending: "confirmed",
+    confirmed: "checkedIn",
+    checkedIn: "checkedOut",
+  };
+  const { status } = req.body;
+  const { id } = req.params;
+  try {
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking status",
+      });
+    }
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "No booking found",
+      });
+    }
+    if (!["pending", "confirmed", "checkedIn", "checkedOut", "cancelled"].includes(status)){
+      return res.status(400).json({
+        success: false,
+        message: "Malformed status"
+      })
+    }
+    const nextStatus = ALLOWED_TRANSITIONS[booking.status];
+    if (nextStatus !== status) {
+      return res.status(409).json({
+        success: false,
+        message: "Cannot change booking status",
+      });
+    }
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true },
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Booking status updated successfully",
+      data: updatedBooking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
