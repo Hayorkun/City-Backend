@@ -26,7 +26,7 @@ export const updateUserRole = async (req, res, next) => {
     }
 
     const touchesAdminTier = role === "admin" || targetUser.role === "admin";
-   if (touchesAdminTier && req.user.isOwner !== true) {
+    if (touchesAdminTier && req.user.isOwner !== true) {
       return res.status(403).json({
         success: false,
         message: "Access denied",
@@ -48,6 +48,51 @@ export const updateUserRole = async (req, res, next) => {
       success: true,
       message: "User role updated successfully",
       data: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const transferOwnership = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const targetAdmin = await User.findById(id);
+    if (!targetAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    if (req.user.isOwner !== true) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+    if (targetAdmin._id.toString() === req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Request denied",
+      });
+    }
+    if (targetAdmin.role !== "admin") {
+      return res.status(400).json({
+        success: false,
+        message: "Role requirment not met",
+      });
+    }
+    const changeOwnership = await User.findByIdAndUpdate(
+      id,
+      { isOwner: true },
+      { new: true, select: "-password" },
+    );
+    await User.findByIdAndUpdate(req.user.id, { isOwner: false });
+    return res.status(200).json({
+      success: true,
+      message: "Ownership transferred successfully",
+      data: changeOwnership,
     });
   } catch (error) {
     next(error);

@@ -228,11 +228,19 @@ export const updateBooking = async (req, res, next) => {
         message: "No booking found",
       });
     }
-    if (!["pending", "confirmed", "checkedIn", "checkedOut", "cancelled"].includes(status)){
+    if (
+      ![
+        "pending",
+        "confirmed",
+        "checkedIn",
+        "checkedOut",
+        "cancelled",
+      ].includes(status)
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Malformed status"
-      })
+        message: "Malformed status",
+      });
     }
     const nextStatus = ALLOWED_TRANSITIONS[booking.status];
     if (nextStatus !== status) {

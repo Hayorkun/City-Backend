@@ -15,6 +15,13 @@ export const PERMISSIONS = {
   },
 
   users: {
-    update: ["admin"]
+    update: ["admin"],
+    transfer: ["admin"]
+  },
+
+  payments: {
+    pay: ["customer"],
+    recordManual: ["staff", "admin"],
   }
+
 };

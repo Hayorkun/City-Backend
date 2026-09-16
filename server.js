@@ -10,6 +10,8 @@ import authRoute from "./routes/authRoute.js";
 import roomRoute from "./routes/roomRoute.js";
 import bookingRoute from "./routes/bookingRoute.js";
 import { startBookingExpiryJob } from "./utils/expireBooking.js";
+import userRoute from "./routes/userRoute.js"
+import paymentRoute from "./routes/paymentRoute.js"
 // import testRoute from "./routes/testRoute.js"
 
 dotenv.config();
@@ -30,6 +32,8 @@ app.use("/api/health", healthRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/rooms", roomRoute);
 app.use("/api/bookings", bookingRoute);
+app.use("/api/user", userRoute)
+app.use("/api/payments", paymentRoute)
 // app.use("/api/test", testRoute)
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

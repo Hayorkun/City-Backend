@@ -1,17 +1,21 @@
 import express from "express";
-import { transferOwnership, updateUserRole } from "../controllers/userController.js";
+import {
+  initiatePayment,
+  paymentCallback,
+} from "../controllers/paymentController.js";
 import { verifyUser } from "../middleware/authMiddleware.js";
 import { verifyRole } from "../middleware/roleMiddleWare.js";
 import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
-router.patch(
+router.post(
   "/:id",
   verifyUser,
-  verifyRole(...PERMISSIONS.users.update),
-  updateUserRole,
+  verifyRole(...PERMISSIONS.payments.pay),
+  initiatePayment,
 );
-router.patch("/:id/transfer-ownership", verifyUser, verifyRole(...PERMISSIONS.users.transfer), transferOwnership)
+
+router.get("/callback",verifyUser, paymentCallback);
 
 export default router;
