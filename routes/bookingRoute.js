@@ -50,5 +50,4 @@ router.put(
   updateBooking,
 );
 
-
 export default router;

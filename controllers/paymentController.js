@@ -54,6 +54,7 @@ export const initiatePayment = async (req, res, next) => {
       existingPayment.status = "pending";
       existingPayment.paystackData = paystackData;
       existingPayment.paidAt = undefined;
+      existingPayment.method = "paystack"
 
       await existingPayment.save();
     } else {
@@ -61,6 +62,7 @@ export const initiatePayment = async (req, res, next) => {
         booking: booking._id,
         reference: paystackData.reference,
         amount: booking.totalPrice,
+        method: "paystack",
         status: "pending",
         paystackData,
       });
@@ -180,6 +182,77 @@ export const paymentCallback = async (req, res, next) => {
       data: {
         reference: payment.reference,
         paymentStatus: payment.status,
+        bookingStatus: booking.status,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const recordManualPayment = async (req, res, next) => {
+  const { id } = req.params;
+  const { method } = req.body;
+  try {
+    if (!["cash", "transfer"].includes(method)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment method",
+      });
+    }
+
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "No booking found",
+      });
+    }
+    if (booking.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking status invalid",
+      });
+    }
+
+    const payment = await Payment.findOne({ booking: booking._id });
+
+    if (payment?.status === "success") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking has already been paid for",
+      });
+    }
+
+    if (payment) {
+      payment.status = "success";
+      payment.method = method;
+      payment.reference = `MANUAL-${Date.now()}`;
+      payment.paidAt = new Date();
+      payment.recordedBy = req.user.id;
+
+      await payment.save();
+    } else {
+      await Payment.create({
+        booking: booking._id,
+        reference: `MANUAL-${Date.now()}`,
+        amount: booking.totalPrice,
+        method,
+        status: "success",
+        paidAt: new Date(),
+        recordedBy: req.user.id,
+      });
+    }
+    booking.status = "confirmed";
+    await booking.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Manual payment recorded successfully",
+      data: {
+        bookingId: booking._id,
+        paymentMethod: method,
         bookingStatus: booking.status,
       },
     });

@@ -27,7 +27,17 @@ router.get(
   getAllRoomsForAdmin,
 );
 router.get("/:id", getRoomById);
-router.put("/:id", verifyUser, verifyRole(...PERMISSIONS.rooms.update), updateRoom)
-router.delete("/:id", verifyUser, verifyRole(...PERMISSIONS.rooms.delete), deleteRoom)
+router.put(
+  "/:id",
+  verifyUser,
+  verifyRole(...PERMISSIONS.rooms.update),
+  updateRoom,
+);
+router.delete(
+  "/:id",
+  verifyUser,
+  verifyRole(...PERMISSIONS.rooms.delete),
+  deleteRoom,
+);
 
 export default router;

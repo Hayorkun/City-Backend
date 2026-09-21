@@ -2,6 +2,7 @@ import express from "express";
 import {
   initiatePayment,
   paymentCallback,
+  recordManualPayment,
 } from "../controllers/paymentController.js";
 import { verifyUser } from "../middleware/authMiddleware.js";
 import { verifyRole } from "../middleware/roleMiddleWare.js";
@@ -15,7 +16,12 @@ router.post(
   verifyRole(...PERMISSIONS.payments.pay),
   initiatePayment,
 );
-
-router.get("/callback",verifyUser, paymentCallback);
+router.post(
+  "/manual/:id",
+  verifyUser,
+  verifyRole(...PERMISSIONS.payments.recordManual),
+  recordManualPayment,
+);
+router.get("/callback", paymentCallback);
 
 export default router;
